@@ -23,7 +23,10 @@ if [ -z "$id"  ]; then
     exit 1;
 fi
 
-data="/var/lib/ceph/osd/${cluster:-ceph}-$id"
+data=$(ceph-conf --cluster=${cluster:-ceph} --name osd.$id --lookup 'osd data' || :)
+if [ -z "$data" ]; then
+    data="/var/lib/ceph/osd/${cluster:-ceph}-$id"
+fi
 
 # assert data directory exists - see http://tracker.ceph.com/issues/17091
 if [ ! -d "$data" ]; then
@@ -31,7 +34,10 @@ if [ ! -d "$data" ]; then
     exit 1
 fi
 
-journal="$data/journal"
+journal=$(ceph-conf --cluster=${cluster:-ceph} --name osd.$id --lookup 'osd journal' || :)
+if [ -z "$journal" ]; then
+    journal="$data/journal"
+fi
 
 if [ -L "$journal" -a ! -e "$journal" ]; then
     udevadm settle --timeout=5 || :
